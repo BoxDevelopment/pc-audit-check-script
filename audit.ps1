@@ -332,8 +332,9 @@ function Get-AuditWindowsInfo {
 function Get-AuditAutoPlaySetting {
     $onOff = "On"
     try {
-        # NoDriveTypeAutoRun controls it per drive,
-        # 0xFF (255) disables for all, check per user then machine wide
+        # NoDriveTypeAutoRun controls AutoPlay/AutoRun per drive type.
+        # 0xFF (255) disables it for all drive types. Check the per-user
+        # policy first, then fall back to the machine-wide policy.
         $paths = @(
             'HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer',
             'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
@@ -350,7 +351,7 @@ function Get-AuditAutoPlaySetting {
             }
         }
         if (-not $found) {
-            # no policy = autoplay is ON
+            # If no policy is set, AutoPlay is On by Windows default
             $onOff = "On"
         }
     }
@@ -358,22 +359,39 @@ function Get-AuditAutoPlaySetting {
         return "Unknown"
     }
 
-    # if autoplay check default handler
+    # If AutoPlay is on, check the user's chosen default handler for
+    # removable media arrival, so we can append e.g. "Ask Every Time".
+    # Note: Windows' actual default behavior (when the user has never
+    # explicitly changed the AutoPlay default in Settings) IS "Ask me
+    # every time" - so a missing/absent override means "Ask Every Time",
+    # not a plain, unqualified "On".
     if ($onOff -eq "On") {
         try {
             $handlerPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers\EventHandlersDefaultSelection'
+            $handlerValue = $null
             if (Test-Path $handlerPath) {
                 $handler = Get-ItemProperty -Path $handlerPath -Name 'StorageOnArrival' -ErrorAction SilentlyContinue
                 if ($null -ne $handler) {
-                    switch -Regex ($handler.StorageOnArrival) {
-                        'PromptEachTime' { return "On Ask Every Time" }
-                        'TakeNoAction'   { return "On Take No Action" }
-                        default          { return "On" }
-                    }
+                    $handlerValue = $handler.StorageOnArrival
                 }
+            }
+
+            if ([string]::IsNullOrWhiteSpace($handlerValue)) {
+                # No explicit override present - this is Windows' default
+                # "ask every time" behavior.
+                return "On Ask Every Time"
+            }
+
+            switch -Regex ($handlerValue) {
+                'PromptEachTime' { return "On Ask Every Time" }
+                'TakeNoAction'   { return "On Take No Action" }
+                default          { return "On" }
             }
         }
         catch {
+            # If we can't read the handler at all, still report the
+            # Windows default rather than an unqualified "On".
+            return "On Ask Every Time"
         }
     }
 
