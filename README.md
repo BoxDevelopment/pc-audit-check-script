@@ -1,9 +1,4 @@
 # PC Audit (C# port)
-
-A direct C# port of your PowerShell audit script. Same sections, same
-fallback logic, same "Unknown" defaults, same `Format-List`-style output
-(label padded to the widest label, then ` : `, then value).
-
 a C# port of the previous PowerShell script (archived in powershell folder)
 does the exact same stuff the same exact way.
 
