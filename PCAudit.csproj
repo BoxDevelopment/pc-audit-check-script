@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>PCAudit</AssemblyName>
+    <RootNamespace>PCAudit</RootNamespace>
+    <!-- Needed for WMI (System.Management) and registry/service access -->
+    <UseWindowsForms>false</UseWindowsForms>
+    <!-- Embeds the manifest below, so Windows shows the UAC prompt
+         automatically whenever PCAudit.exe is launched. -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="8.0.0" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>
