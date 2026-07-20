@@ -1,3 +1,6 @@
-certain devices prevent PS1 execution: bypass `powershell -ExecutionPolicy Bypass -File .\audit.ps1`
+certain devices prevent PS1 execution: bypass 
+``
+powershell -ExecutionPolicy Bypass -File .\audit.ps1
+``
 
 update readme maybe 
